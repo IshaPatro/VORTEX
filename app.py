@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import time
 
-from utils import data_loader, regime_detection, risk_models, stress_testing, visualization, ai_commentary
+from utils import data_loader, regime_detection, risk_models, stress_testing, visualization, ai_agents
 
 st.set_page_config(
     page_title="VORTEX Risk Engine",
@@ -71,6 +71,11 @@ lookback_window = st.sidebar.slider("Lookback Window (Days)", 60, 500, 252)
 st.sidebar.divider()
 st.sidebar.caption("Powered by Hmmlearn, XGBoost, and Mistral 7B.")
 
+st.sidebar.divider()
+st.sidebar.subheader("LLM Provider Status")
+provider_placeholder = st.sidebar.empty()
+
+
 # ── Main Computations ────────────────────────────────────────────────────────
 
 # Compute returns
@@ -109,6 +114,24 @@ with st.spinner("Crunching analytics..."):
 
     # 5. Stress Test
     stress_res = stress_testing.run_stress_test(weights)
+    worst = stress_testing.worst_case_scenario(stress_res)
+    loss = stress_res.loc[worst, "Portfolio Loss (%)"]
+
+    # 6. Run LangGraph Multi-Agent Workflow
+    agent_state = ai_agents.run_risk_agents(
+        regime_data=current_regime,
+        metrics_data=metrics,
+        stress_data={"worst_scenario": worst, "worst_loss": loss}
+    )
+    
+    # Update UI status
+    status = agent_state.get("provider_status", "Unknown")
+    if status == "Claude":
+        provider_placeholder.success("🟢 Claude Active")
+    elif status == "Hugging Face":
+        provider_placeholder.warning("🟡 Hugging Face Fallback Active")
+    else:
+        provider_placeholder.error("🔴 Local Template Mode")
 
 # ── Dashboard Layout ────────────────────────────────────────────────────────
 
@@ -130,15 +153,13 @@ with col1:
     st.subheader("🤖 AI Intelligence")
     
     with st.expander("Regime Analysis", expanded=True):
-        st.write(ai_commentary.generate_regime_commentary(current_regime["regime"], current_regime["probabilities"]))
+        st.write(agent_state["regime_analysis"])
     
     with st.expander("Portfolio Health", expanded=True):
-         st.write(ai_commentary.generate_portfolio_commentary(metrics))
+         st.write(agent_state["var_analysis"])
          
     with st.expander("Stress Alert", expanded=True):
-         worst = stress_testing.worst_case_scenario(stress_res)
-         loss = stress_res.loc[worst, "Portfolio Loss (%)"]
-         st.write(ai_commentary.generate_stress_commentary(worst, loss))
+         st.write(agent_state["stress_analysis"])
 
 with col2:
     st.plotly_chart(visualization.plot_regime_timeline(regimes, port_price), use_container_width=True)
