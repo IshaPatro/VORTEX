@@ -25,49 +25,43 @@ class RiskState(TypedDict):
 
 # --- Agent Functions ---
 
-def supervisor_agent(state: RiskState) -> RiskState:
+def supervisor_agent(state: RiskState) -> Dict[str, Any]:
     # Supervisor orchestrates and doesn't do much heavy lifting here
-    # Just initialize the provider status if empty
-    if "provider_status" not in state:
-        state["provider_status"] = "Unknown"
-    return state
+    return {"provider_status": "Unknown"} if "provider_status" not in state else {}
 
-def regime_analyst(state: RiskState) -> RiskState:
+def regime_analyst(state: RiskState) -> Dict[str, Any]:
     regime = state["regime_data"]["regime"]
     probs = state["regime_data"]["probabilities"]
     
     prompt = f"Analyze the current market regime: '{regime}' with probabilities {probs}. Provide 2 sentences."
     response = llm.invoke([HumanMessage(content=prompt)])
     
-    state["regime_analysis"] = response.content
-    state["provider_status"] = response.response_metadata.get("provider", "Unknown")
-    return state
+    return {
+        "regime_analysis": response.content,
+        "provider_status": response.response_metadata.get("provider", "Unknown")
+    }
 
-def var_risk_agent(state: RiskState) -> RiskState:
+def var_risk_agent(state: RiskState) -> Dict[str, Any]:
     metrics = state["metrics_data"]
     
     prompt = f"Analyze these portfolio risk metrics: {metrics}. Focus on VaR and Drawdown. Provide 2 sentences."
     response = llm.invoke([HumanMessage(content=prompt)])
     
-    state["var_analysis"] = response.content
-    state["provider_status"] = response.response_metadata.get("provider", state["provider_status"])
-    return state
+    return {"var_analysis": response.content}
 
-def stress_testing_agent(state: RiskState) -> RiskState:
+def stress_testing_agent(state: RiskState) -> Dict[str, Any]:
     worst = state["stress_data"]["worst_scenario"]
     loss = state["stress_data"]["worst_loss"]
     
     prompt = f"The portfolio is vulnerable to '{worst}' with a {loss}% loss. Provide a 2 sentence risk warning."
     response = llm.invoke([HumanMessage(content=prompt)])
     
-    state["stress_analysis"] = response.content
-    state["provider_status"] = response.response_metadata.get("provider", state["provider_status"])
-    return state
+    return {"stress_analysis": response.content}
 
-def risk_committee_reporter(state: RiskState) -> RiskState:
+def risk_committee_reporter(state: RiskState) -> Dict[str, Any]:
     # Synthesizes everything (optional, but good for LangGraph showcase)
     # We will just pass through the individual analyses for the UI to display in expanders.
-    return state
+    return {}
 
 # --- Build the Graph ---
 

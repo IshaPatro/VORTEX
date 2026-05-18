@@ -59,8 +59,10 @@ VORTEX/
    cd VORTEX
    ```
 
-2. **Install dependencies:**
+2. **Create a virtual environment and install dependencies:**
    ```bash
+   python -m venv .venvVortex
+   source .venvVortex/bin/activate  # On Windows use `.venvVortex\Scripts\activate`
    pip install -r requirements.txt
    ```
 

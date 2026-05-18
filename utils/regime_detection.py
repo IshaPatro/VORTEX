@@ -51,7 +51,7 @@ def _build_hmm_features(returns: pd.Series) -> np.ndarray:
     Realized vol = rolling 5-day std of returns.
     """
     r = returns.copy()
-    vol = r.rolling(5).std().fillna(method="bfill").fillna(0)
+    vol = r.rolling(5).std().bfill().fillna(0)
     feat = np.column_stack([r.values, vol.values])
     return feat
 
