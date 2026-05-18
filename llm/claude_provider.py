@@ -7,8 +7,15 @@ from langchain_core.messages import HumanMessage
 def call_claude(prompt: str, model: str = "claude-3-haiku-20240307") -> Dict[str, Any]:
     """Primary provider: Anthropic Claude."""
     start_time = time.time()
-    api_key = os.getenv("CLAUDE_TOKEN")
     
+    api_key = os.getenv("CLAUDE_TOKEN")
+    if not api_key:
+        try:
+            import streamlit as st
+            api_key = st.secrets.get("CLAUDE_TOKEN")
+        except Exception:
+            pass
+            
     if not api_key:
         raise ValueError("CLAUDE_TOKEN is not set.")
         

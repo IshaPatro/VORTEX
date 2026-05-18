@@ -9,8 +9,15 @@ DEFAULT_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
 def call_huggingface(prompt: str, model: str = DEFAULT_MODEL) -> Dict[str, Any]:
     """Fallback provider: Hugging Face Inference API."""
     start_time = time.time()
-    api_key = os.getenv("HG_TOKEN")
     
+    api_key = os.getenv("HG_TOKEN")
+    if not api_key:
+        try:
+            import streamlit as st
+            api_key = st.secrets.get("HG_TOKEN")
+        except Exception:
+            pass
+            
     if not api_key:
         raise ValueError("HG_TOKEN is not set.")
         
