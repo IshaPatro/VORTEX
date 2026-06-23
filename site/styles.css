@@ -60,13 +60,14 @@ body {
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
 }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 800; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 800; flex-shrink: 0; }
 .brand-mark { font-size: 22px; }
 .brand-text { letter-spacing: 1px; font-size: 18px; }
-.nav-links { display: flex; gap: 6px; flex-wrap: wrap; }
+.nav-links { display: flex; gap: 2px; flex-wrap: nowrap; align-items: center; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+.nav-links::-webkit-scrollbar { display: none; }
 .nav-links a {
-  color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500;
-  padding: 7px 12px; border-radius: 9px; transition: all .18s ease;
+  color: var(--text-dim); text-decoration: none; font-size: 13.5px; font-weight: 500;
+  padding: 7px 10px; border-radius: 9px; transition: all .18s ease; white-space: nowrap;
 }
 .nav-links a:hover, .nav-links a.active { color: var(--text); background: var(--surface-2); }
 .nav-toggle { display: none; background: none; border: none; color: var(--text); font-size: 22px; cursor: pointer; }
