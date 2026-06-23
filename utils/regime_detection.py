@@ -186,19 +186,49 @@ def detect_regimes(
 
     feat = _build_hmm_features(returns)
     feat_scaled = scaler.transform(feat)
-    posteriors = model.predict_proba(feat_scaled)   # shape (T, n_states)
+    posteriors = model.predict_proba(feat_scaled)        # smoothed (uses full sample)
+    filtered = _filtered_probabilities(model, feat_scaled)  # causal (online) estimate
 
     result = pd.DataFrame(index=returns.index)
     result["return"] = returns.values
     result["regime_id"] = states
     result["regime"] = [label_map[s] for s in states]
+    # Causal regime from filtered probabilities (what you'd know in real time).
+    filt_state = filtered.argmax(axis=1)
+    result["regime_filtered"] = [label_map[s] for s in filt_state]
 
     for i in range(n_states):
-        semantic = label_map[i]
-        # Store posterior prob under the semantic regime name for clarity
-        result[f"prob_{semantic.replace(' ', '_')}"] = posteriors[:, i]
+        semantic = label_map[i].replace(" ", "_")
+        result[f"prob_{semantic}"] = posteriors[:, i]      # smoothed
+        result[f"filt_{semantic}"] = filtered[:, i]        # filtered / causal
 
     return result
+
+
+def _filtered_probabilities(model, feat_scaled: np.ndarray) -> np.ndarray:
+    """Forward-algorithm filtered state probabilities P(s_t | x_1..x_t).
+
+    Unlike ``predict_proba`` (smoothed, conditions on the whole sample), these
+    only use information available up to time t — an honest, real-time estimate
+    of the prevailing regime.
+    """
+    from scipy.special import logsumexp
+
+    framelogprob = model._compute_log_likelihood(feat_scaled)  # (T, n)
+    T, n = framelogprob.shape
+    log_start = np.log(model.startprob_ + 1e-12)
+    log_trans = np.log(model.transmat_ + 1e-12)
+
+    filtered = np.zeros((T, n))
+    la = log_start + framelogprob[0]
+    log_norm = la - logsumexp(la)
+    filtered[0] = np.exp(log_norm)
+    for t in range(1, T):
+        pred = logsumexp(log_norm[:, None] + log_trans, axis=0)
+        la = pred + framelogprob[t]
+        log_norm = la - logsumexp(la)
+        filtered[t] = np.exp(log_norm)
+    return filtered
 
 
 def regime_summary(regime_df: pd.DataFrame) -> pd.DataFrame:
@@ -217,13 +247,20 @@ def regime_summary(regime_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("Regime")
 
 
-def get_current_regime(regime_df: pd.DataFrame) -> Dict[str, object]:
-    """Return the most recent detected regime and its posterior probabilities."""
+def get_current_regime(regime_df: pd.DataFrame, use_filtered: bool = True) -> Dict[str, object]:
+    """Return the most recent detected regime and its probabilities.
+
+    With ``use_filtered=True`` (default) the causal filtered estimate is used —
+    the honest real-time view — falling back to smoothed posteriors if absent.
+    """
     last = regime_df.iloc[-1]
-    prob_cols = [c for c in regime_df.columns if c.startswith("prob_")]
-    probs = {c.replace("prob_", "").replace("_", " "): round(float(last[c]), 4) for c in prob_cols}
+    has_filtered = use_filtered and any(c.startswith("filt_") for c in regime_df.columns)
+    prefix = "filt_" if has_filtered else "prob_"
+    prob_cols = [c for c in regime_df.columns if c.startswith(prefix)]
+    probs = {c.replace(prefix, "").replace("_", " "): round(float(last[c]), 4) for c in prob_cols}
+    regime = last["regime_filtered"] if has_filtered and "regime_filtered" in regime_df.columns else last["regime"]
     return {
-        "regime": last["regime"],
+        "regime": regime,
         "date": regime_df.index[-1],
         "probabilities": probs,
     }

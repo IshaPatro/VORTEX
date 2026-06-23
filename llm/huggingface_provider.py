@@ -12,13 +12,6 @@ def call_huggingface(prompt: str, model: str = DEFAULT_MODEL) -> Dict[str, Any]:
     
     api_key = os.getenv("HG_TOKEN")
     if not api_key:
-        try:
-            import streamlit as st
-            api_key = st.secrets.get("HG_TOKEN")
-        except Exception:
-            pass
-            
-    if not api_key:
         raise ValueError("HG_TOKEN is not set.")
         
     headers = {

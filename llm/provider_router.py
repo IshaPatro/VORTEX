@@ -1,23 +1,28 @@
-import time
 import logging
-from typing import Any, List, Optional, Dict
+from typing import Any, List, Optional
+
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage, AIMessage, HumanMessage
 from langchain_core.outputs import ChatResult, ChatGeneration
 
-from .claude_provider import call_claude
 from .huggingface_provider import call_huggingface
 from .fallback_handler import log_provider_usage, get_deterministic_fallback
+from .response_cache import get_cached_response, store_response
 
 log = logging.getLogger(__name__)
 
+
 class ResilientProviderRouter(BaseChatModel):
     """
-    LangChain compatible chat model that automatically falls back from 
-    Claude to Hugging Face, and finally to deterministic templates.
+    LangChain compatible chat model with a resilient provider chain:
+        0. Persistent response cache  (pre-generated Claude commentary, instant)
+        1. Hugging Face Inference API (optional cloud fallback)
+        2. Deterministic templates    (guaranteed, never fails)
+
+    Each provider is tried in order; the first success wins. The deterministic
+    template guarantees the app never crashes due to LLM unavailability.
     """
-    
-    # Required for Langchain BaseChatModel
+
     @property
     def _llm_type(self) -> str:
         return "resilient_router"
@@ -29,56 +34,44 @@ class ResilientProviderRouter(BaseChatModel):
         run_manager: Optional[Any] = None,
         **kwargs: Any,
     ) -> ChatResult:
-        
-        # Combine messages into a single prompt for simpler providers
-        prompt = "\n".join([msg.content for msg in messages if isinstance(msg, (HumanMessage, AIMessage))])
+
+        # Combine messages into a single prompt for the simpler providers.
+        prompt = "\n".join(
+            [msg.content for msg in messages if isinstance(msg, (HumanMessage, AIMessage))]
+        )
         if not prompt:
             prompt = str(messages[0].content)
 
-        # 1. Try Claude
+        # 0. Persistent disk cache — serve pre-generated Claude commentary
+        #    instantly so the model doesn't run again and again.
+        cached = get_cached_response(prompt)
+        if cached is not None:
+            log_provider_usage(cached.get("provider", "Cache"), True, 0.0, False)
+            return self._wrap(cached)
+
+        # 1. Hugging Face (optional cloud fallback)
         try:
-            result = call_claude(prompt)
-            log_provider_usage(result["provider"], True, result["latency"], False)
-            
-            message = AIMessage(
-                content=result["response"],
-                response_metadata=result
-            )
-            return ChatResult(generations=[ChatGeneration(message=message)])
-            
-        except Exception as claude_err:
-            log.warning(f"Claude failed: {claude_err}. Attempting Hugging Face fallback.")
-            log_provider_usage("Claude", False, 0.0, False, str(claude_err))
-            
-        # 2. Try Hugging Face
-        try:
-            start = time.time()
             result = call_huggingface(prompt)
             log_provider_usage(result["provider"], True, result["latency"], True)
-            
-            message = AIMessage(
-                content=result["response"],
-                response_metadata=result
-            )
-            return ChatResult(generations=[ChatGeneration(message=message)])
-            
+            store_response(prompt, result["response"], result["provider"])
+            return self._wrap(result)
         except Exception as hf_err:
-            log.warning(f"Hugging Face failed: {hf_err}. Attempting deterministic fallback.")
+            log.warning("Hugging Face failed: %s. Using deterministic fallback.", hf_err)
             log_provider_usage("Hugging Face", False, 0.0, True, str(hf_err))
-            
-        # 3. Deterministic Fallback
+
+        # 2. Deterministic fallback (always succeeds)
         fallback_resp = get_deterministic_fallback(prompt)
         meta = {
             "provider": "Local Template",
             "success": True,
             "response": fallback_resp,
             "latency": 0.0,
-            "fallback_used": True
+            "fallback_used": True,
         }
         log_provider_usage("Local Template", True, 0.0, True)
-        
-        message = AIMessage(
-            content=fallback_resp,
-            response_metadata=meta
-        )
+        return self._wrap(meta)
+
+    @staticmethod
+    def _wrap(result: dict) -> ChatResult:
+        message = AIMessage(content=result["response"], response_metadata=result)
         return ChatResult(generations=[ChatGeneration(message=message)])

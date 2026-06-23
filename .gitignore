@@ -1,3 +1,5 @@
 .env
 .venvVortex/
 llm_logs.json
+llm_cache.json
+__pycache__/

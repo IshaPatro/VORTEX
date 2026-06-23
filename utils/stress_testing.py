@@ -117,3 +117,66 @@ def scenario_bar_data(stress_df: pd.DataFrame) -> pd.DataFrame:
 
 def worst_case_scenario(stress_df: pd.DataFrame) -> str:
     return stress_df["Portfolio Loss (%)"].idxmin()
+
+
+# ── Historical scenario replay ───────────────────────────────────────────────
+
+# Actual historical windows for crisis replay (peak → trough).
+HISTORICAL_WINDOWS: Dict[str, tuple] = {
+    "2008 Financial Crisis": ("2007-10-09", "2009-03-09"),
+    "COVID Crash (Feb-Mar 2020)": ("2020-02-19", "2020-03-23"),
+    "Fed Rate Shock (2022)": ("2022-01-03", "2022-10-12"),
+    "2018 Q4 Selloff": ("2018-09-20", "2018-12-24"),
+}
+
+
+def historical_scenario_replay(
+    returns_matrix: pd.DataFrame, weights: Dict[str, float]
+) -> pd.DataFrame:
+    """Replay the *actual* asset return paths over each historical window against
+    the current weights (compounded), instead of using static hand-set shocks.
+
+    This naturally captures the realized cross-asset behaviour (correlations,
+    contagion) of each episode for the assets that existed at the time.
+    """
+    tickers = [t for t in weights if t in returns_matrix.columns]
+
+    rows: List[Dict] = []
+    for name, (start, end) in HISTORICAL_WINDOWS.items():
+        win = returns_matrix.loc[start:end, tickers]
+        # Use only assets that actually existed / traded in this window, then
+        # renormalize weights across them (e.g. BTC didn't exist in 2008).
+        avail = [t for t in tickers if win[t].notna().sum() > 0]
+        if not avail:
+            continue
+        window = win[avail].dropna()
+        if window.empty:
+            continue
+        w = np.array([weights[t] for t in avail], dtype=float)
+        w /= w.sum()
+        simple = np.expm1(window.values)
+        port_daily = simple @ w
+        total = float(np.prod(1 + port_daily) - 1)
+        rows.append({
+            "Scenario": name,
+            "Replay Loss (%)": round(total * 100, 2),
+            "Days": int(len(window)),
+            "Coverage": f"{len(avail)} assets",
+        })
+    return pd.DataFrame(rows).set_index("Scenario")
+
+
+def reverse_stress_test(
+    portfolio_vol_annual: float, target_loss_pct: float = -20.0
+) -> Dict[str, float]:
+    """How extreme a move (in portfolio standard deviations) is required to hit a
+    given loss? Answers 'what would it take to lose X%?'."""
+    daily_vol = portfolio_vol_annual / 100.0 / np.sqrt(252)
+    target = target_loss_pct / 100.0
+    sigma_move = target / daily_vol if daily_vol else float("nan")
+    return {
+        "target_loss_pct": target_loss_pct,
+        "daily_sigma_move": round(float(sigma_move), 2),
+        "annual_sigma_move": round(float(target / (portfolio_vol_annual / 100.0)), 2)
+        if portfolio_vol_annual else float("nan"),
+    }

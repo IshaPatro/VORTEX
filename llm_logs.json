@@ -1,1 +1,1 @@
-[{"timestamp": 1779130043.839126, "provider": "Local Template", "success": true, "latency_sec": 0.0, "fallback_used": true, "error": ""}]
+[{"timestamp": 1782216121.818829, "provider": "Claude", "success": true, "latency_sec": 0.0, "fallback_used": false, "error": ""}, {"timestamp": 1782216735.102496, "provider": "Claude", "success": true, "latency_sec": 0.0, "fallback_used": false, "error": ""}, {"timestamp": 1782216735.102674, "provider": "Claude", "success": true, "latency_sec": 0.0, "fallback_used": false, "error": ""}]

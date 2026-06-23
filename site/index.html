@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VORTEX — Concepts &amp; Methodology Reference</title>
+  <meta name="description" content="A complete reference for VORTEX: from plain-English definitions of every market-risk metric to the quantitative methodology behind regime detection, Value-at-Risk, volatility forecasting and stress testing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <header class="nav" id="nav">
+    <a href="#top" class="brand">
+      <span class="brand-mark">🌪️</span>
+      <span class="brand-text">VORTEX</span>
+      <span class="brand-divider">|</span>
+      <span class="brand-sub">Reference</span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#overview">Overview</a>
+      <a href="#foundations">Foundations</a>
+      <a href="#metrics">Risk Metrics</a>
+      <a href="#regimes">Regimes</a>
+      <a href="#var">VaR</a>
+      <a href="#volatility">Volatility</a>
+      <a href="#stress">Stress</a>
+      <a href="#ai">AI Layer</a>
+      <a href="#methodology">Methodology</a>
+      <a href="../index.html" class="nav-cta">Open Dashboard ↗</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" id="top">
+    <div class="hero-inner">
+      <span class="eyebrow">Concepts &amp; Methodology Reference</span>
+      <h1>A complete guide to<br /><span class="grad">market-risk analytics</span></h1>
+      <p class="lede">
+        This reference explains every concept behind the VORTEX engine — from the fundamentals of
+        risk to the equations that power the dashboard. It is written to be approachable for newcomers
+        and precise enough for practitioners, progressing from plain-English intuition to formal
+        quantitative methodology.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#foundations">Begin with the fundamentals →</a>
+        <a class="btn btn-ghost" href="#methodology">Skip to the mathematics</a>
+      </div>
+      <div class="hero-stats">
+        <div><strong>4</strong><span>Market regimes</span></div>
+        <div><strong>4</strong><span>VaR methodologies</span></div>
+        <div><strong>3</strong><span>AI risk agents</span></div>
+        <div><strong>20yr</strong><span>Of market data</span></div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <!-- OVERVIEW -->
+    <section class="section" id="overview">
+      <div class="section-head">
+        <span class="kicker">01 — Overview</span>
+        <h2>What VORTEX does</h2>
+      </div>
+      <div class="prose">
+        <p>
+          Every investor holding a portfolio of assets faces two recurring questions: <strong>how much
+          risk am I carrying right now</strong>, and <strong>how would my holdings withstand a severe
+          market event</strong>. Answering them rigorously normally demands specialist tooling and
+          fluency in quantitative finance.
+        </p>
+        <p>
+          VORTEX automates the entire workflow. It ingests two decades of market history, identifies the
+          prevailing market environment, quantifies downside risk through multiple methodologies,
+          simulates historical crises against the live portfolio, and — distinctively — uses a language
+          model to translate the resulting figures into clear, actionable commentary.
+        </p>
+        <div class="analogy">
+          <span class="analogy-tag">In plain terms</span>
+          <p>
+            Think of VORTEX as an instrument panel for a portfolio. The gauges are risk metrics, the
+            indicators are market regimes and stress tests, and the commentary layer is the analyst who
+            tells you what the readings actually mean for your decisions.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOUNDATIONS -->
+    <section class="section" id="foundations">
+      <div class="section-head">
+        <span class="kicker">02 — Foundations</span>
+        <h2>Two concepts to anchor everything</h2>
+        <p class="section-sub">Nearly every metric in this reference is built on these two ideas.</p>
+      </div>
+      <div class="card-grid two">
+        <article class="card">
+          <span class="card-label">Concept 01</span>
+          <h3>Return</h3>
+          <p>
+            A <strong>return</strong> is the percentage change in an asset's value over a period. A move
+            from $100 to $105 is a <span class="hl">+5%</span> return. VORTEX works with <em>daily</em>
+            returns — the granular day-to-day fluctuations that reveal an asset's behaviour.
+          </p>
+        </article>
+        <article class="card">
+          <span class="card-label">Concept 02</span>
+          <h3>Volatility</h3>
+          <p>
+            <strong>Volatility</strong> measures the magnitude of those fluctuations. A stable instrument
+            barely moves; a speculative one swings sharply. Higher volatility signals greater uncertainty
+            and, generally, greater risk — it is the raw material for most risk metrics.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- RISK METRICS GLOSSARY -->
+    <section class="section" id="metrics">
+      <div class="section-head">
+        <span class="kicker">03 — The Metrics</span>
+        <h2>Risk metrics, defined precisely and plainly</h2>
+        <p class="section-sub">
+          These are the core gauges on the dashboard. Each answers a distinct question about a portfolio's
+          exposure. The formal definitions for each appear later in the <a href="#methodology">Methodology</a> section.
+        </p>
+      </div>
+
+      <div class="metric-list">
+        <article class="metric">
+          <div class="metric-term">
+            <h3>Value-at-Risk <span class="abbr">(VaR)</span></h3>
+            <span class="metric-q">What constitutes a realistic bad day?</span>
+          </div>
+          <div class="metric-body">
+            <p>
+              VaR estimates the loss that should not be exceeded on a typical adverse day, at a chosen
+              confidence level. A <span class="hl">95% daily VaR of -2%</span> indicates that on 95% of
+              days the loss is expected to remain within 2%; on the remaining ~1 day in 20, losses may be
+              larger. It is the industry-standard single-number summary of downside exposure.
+            </p>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric-term">
+            <h3>Conditional VaR <span class="abbr">(CVaR / Expected Shortfall)</span></h3>
+            <span class="metric-q">And how severe are the worst days?</span>
+          </div>
+          <div class="metric-body">
+            <p>
+              Where VaR marks the threshold of the loss tail, CVaR measures the <strong>average loss once
+              that threshold is breached</strong>. It captures the depth of tail risk that VaR alone
+              omits, and is especially informative for portfolios exposed to rare but severe events.
+            </p>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric-term">
+            <h3>Annualized Volatility</h3>
+            <span class="metric-q">How variable are returns over a year?</span>
+          </div>
+          <div class="metric-body">
+            <p>
+              Daily volatility scaled to an annual figure for comparability. A broad equity index sits
+              near <span class="hl">15%</span>; concentrated single names or digital assets can reach
+              30–60% or more. Higher values denote a wider range of plausible outcomes.
+            </p>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric-term">
+            <h3>Sharpe Ratio</h3>
+            <span class="metric-q">Is the return adequate for the risk taken?</span>
+          </div>
+          <div class="metric-body">
+            <p>
+              Return earned per unit of volatility. It quantifies risk-adjusted performance: values above
+              <span class="hl">1.0</span> are considered solid, and above 2.0 excellent. A low ratio
+              indicates substantial risk for limited compensation.
+            </p>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric-term">
+            <h3>Maximum Drawdown</h3>
+            <span class="metric-q">What was the deepest decline endured?</span>
+          </div>
+          <div class="metric-body">
+            <p>
+              The largest peak-to-trough fall over the period. A <span class="hl">-37%</span> drawdown
+              means the portfolio was, at its worst, 37% below its prior high. It is the most tangible
+              measure of the loss an investor would have had to tolerate before recovery.
+            </p>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric-term">
+            <h3>Skewness</h3>
+            <span class="metric-q">Do surprises tend to be positive or negative?</span>
+          </div>
+          <div class="metric-body">
+            <p>
+              The asymmetry of the return distribution. <strong>Negative skew</strong>, common in markets,
+              reflects frequent small gains punctuated by occasional large losses — gradual climbs and
+              abrupt declines. Recognising it in advance is valuable for risk planning.
+            </p>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric-term">
+            <h3>Kurtosis <span class="abbr">(tail risk)</span></h3>
+            <span class="metric-q">How frequent are extreme outcomes?</span>
+          </div>
+          <div class="metric-body">
+            <p>
+              The propensity for extreme results. High kurtosis — "fat tails" — means severe moves occur
+              <strong>more often than a normal distribution predicts</strong>. Markets exhibit fat tails,
+              which is precisely why crisis-scale events recur more frequently than naive models imply.
+            </p>
+          </div>
+        </article>
+
+        <article class="metric">
+          <div class="metric-term">
+            <h3>Correlation</h3>
+            <span class="metric-q">Do holdings move together?</span>
+          </div>
+          <div class="metric-body">
+            <p>
+              The degree to which two assets move in tandem, from <span class="hl">+1</span> (lockstep) to
+              <span class="hl">0</span> (independent) to <span class="hl">-1</span> (opposite). Effective
+              diversification depends on holding assets that do not decline simultaneously; VORTEX renders
+              a correlation matrix to surface hidden concentration.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- REGIMES -->
+    <section class="section" id="regimes">
+      <div class="section-head">
+        <span class="kicker">04 — Market Regimes</span>
+        <h2>Identifying the prevailing market environment</h2>
+        <p class="section-sub">
+          Markets behave differently across distinct environments. VORTEX classifies the current regime
+          automatically using a Hidden Markov Model.
+        </p>
+      </div>
+
+      <div class="prose">
+        <div class="analogy">
+          <span class="analogy-tag">The method, in plain terms</span>
+          <p>
+            A <strong>Hidden Markov Model (HMM)</strong> infers an unobservable state from observable
+            evidence. It never sees the market's "environment" directly, but by analysing the pattern of
+            daily returns and volatility it deduces the hidden state driving them — and detects when that
+            state transitions. The patterns are learned without supervision; no labels are provided in advance.
+          </p>
+        </div>
+      </div>
+
+      <div class="regime-grid">
+        <article class="regime" style="--c:#00d4aa">
+          <div class="regime-dot"></div>
+          <h3>Low Volatility</h3>
+          <p>Calm, steadily appreciating markets — the low-risk, high-confidence environment.</p>
+        </article>
+        <article class="regime" style="--c:#ff4444">
+          <div class="regime-dot"></div>
+          <h3>Crisis</h3>
+          <p>Sharp declines and elevated volatility — the 2008 and COVID-crash environment.</p>
+        </article>
+        <article class="regime" style="--c:#44aaff">
+          <div class="regime-dot"></div>
+          <h3>Recovery</h3>
+          <p>Returns turn positive and volatility subsides following a shock.</p>
+        </article>
+        <article class="regime" style="--c:#ffaa00">
+          <div class="regime-dot"></div>
+          <h3>Inflation Shock</h3>
+          <p>Rising-price pressure, where equities and bonds can decline together.</p>
+        </article>
+      </div>
+      <p class="footnote">
+        On the dashboard, these regimes are overlaid as coloured bands behind the price series, making the
+        timing of every environment shift over the past two decades immediately legible.
+      </p>
+    </section>
+
+    <!-- VAR METHODS -->
+    <section class="section" id="var">
+      <div class="section-head">
+        <span class="kicker">05 — Value-at-Risk</span>
+        <h2>Four methodologies, compared</h2>
+        <p class="section-sub">
+          There is no single correct way to estimate risk, so VORTEX computes four and presents them side
+          by side. Each rests on a different assumption about how markets behave.
+        </p>
+      </div>
+
+      <div class="card-grid two">
+        <article class="card numbered" data-n="1">
+          <h3>Historical VaR</h3>
+          <p>
+            Reads the loss threshold directly from the empirical distribution of past returns. Assumption-light
+            and transparent, but presumes the future resembles the observed past.
+          </p>
+        </article>
+        <article class="card numbered" data-n="2">
+          <h3>Parametric VaR</h3>
+          <p>
+            Fits a normal distribution to returns and derives the threshold analytically. Fast and smooth,
+            though it tends to understate the likelihood of extreme events.
+          </p>
+        </article>
+        <article class="card numbered" data-n="3">
+          <h3>EWMA VaR <span class="abbr">(RiskMetrics)</span></h3>
+          <p>
+            Weights recent observations more heavily, so the estimate responds quickly as conditions
+            change. Well-suited to detecting emerging turbulence early.
+          </p>
+        </article>
+        <article class="card numbered" data-n="4">
+          <h3>Regime-Adaptive VaR <span class="badge">VORTEX signature</span></h3>
+          <p>
+            Conditions the estimate on the detected regime: the risk band widens during a Crisis and
+            tightens in calm periods. Risk that adapts to context — as a discretionary risk manager would.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- VOLATILITY FORECASTING -->
+    <section class="section" id="volatility">
+      <div class="section-head">
+        <span class="kicker">06 — Volatility Forecasting</span>
+        <h2>Anticipating future turbulence</h2>
+        <p class="section-sub">
+          Measuring current risk is necessary; estimating future risk is more valuable. VORTEX applies
+          three complementary techniques.
+        </p>
+      </div>
+      <div class="card-grid three">
+        <article class="card">
+          <span class="card-label">Statistical</span>
+          <h3>Rolling Volatility</h3>
+          <p>A moving average of recent variability — the baseline measure of how turbulent conditions have been.</p>
+        </article>
+        <article class="card">
+          <span class="card-label">Weighted</span>
+          <h3>EWMA</h3>
+          <p>The same principle with exponential decay, so the estimate adapts faster to fresh market shocks.</p>
+        </article>
+        <article class="card">
+          <span class="card-label">Machine Learning</span>
+          <h3>XGBoost</h3>
+          <p>
+            A gradient-boosted model trained on lagged return and volatility features to <strong>forecast</strong>
+            forward realised volatility — capturing non-linear relationships simpler averages miss.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- STRESS TESTING -->
+    <section class="section" id="stress">
+      <div class="section-head">
+        <span class="kicker">07 — Stress Testing</span>
+        <h2>Simulating historical crises</h2>
+        <p class="section-sub">
+          A stress test applies a known historical shock to the live portfolio and reports the resulting
+          loss — quantifying exposure before a comparable event occurs.
+        </p>
+      </div>
+      <div class="stress-grid">
+        <article class="stress-card">
+          <h3>2008 Financial Crisis</h3>
+          <p>The subprime-driven collapse; equities lost roughly half their value and the banking system seized.</p>
+        </article>
+        <article class="stress-card">
+          <h3>COVID-19 Crash (2020)</h3>
+          <p>The fastest bear market on record — a 34% decline in 33 days.</p>
+        </article>
+        <article class="stress-card">
+          <h3>Fed Rate Shock (2022)</h3>
+          <p>A rare episode in which equities and bonds fell together as interest rates rose sharply.</p>
+        </article>
+        <article class="stress-card">
+          <h3>Tech Selloff (Q1 2022)</h3>
+          <p>Long-duration technology names compressed as the era of cheap capital ended.</p>
+        </article>
+      </div>
+      <p class="footnote">
+        Each scenario applies calibrated, asset-specific shocks (gold, for instance, often rises while
+        equities fall) and reports the aggregate impact on the portfolio — isolating its single largest
+        vulnerability.
+      </p>
+    </section>
+
+    <!-- AI LAYER -->
+    <section class="section" id="ai">
+      <div class="section-head">
+        <span class="kicker">08 — AI Intelligence</span>
+        <h2>From numbers to narrative</h2>
+        <p class="section-sub">
+          Metrics are only useful when interpreted. VORTEX employs a team of AI agents to convert raw
+          figures into clear, institutional-grade commentary.
+        </p>
+      </div>
+
+      <div class="prose">
+        <p>
+          The commentary is produced by a small <strong>multi-agent workflow</strong> (built with
+          LangGraph), in which each agent owns a single responsibility:
+        </p>
+      </div>
+
+      <div class="agents">
+        <div class="agent">
+          <span class="agent-num">A1</span>
+          <div>
+            <h4>Regime Analyst</h4>
+            <p>Interprets the implications of the current market environment.</p>
+          </div>
+        </div>
+        <div class="agent">
+          <span class="agent-num">A2</span>
+          <div>
+            <h4>VaR / Risk Agent</h4>
+            <p>Assesses loss metrics and drawdown exposure.</p>
+          </div>
+        </div>
+        <div class="agent">
+          <span class="agent-num">A3</span>
+          <div>
+            <h4>Stress-Testing Agent</h4>
+            <p>Flags the portfolio's most severe scenario.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow">
+        <h3>Engineered for reliability</h3>
+        <p class="flow-sub">A resilient provider chain guarantees the dashboard always delivers useful analysis: each source is tried in order, falling through to the next if unavailable.</p>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <span class="flow-badge primary">Primary</span>
+            <h4>Cached Claude commentary</h4>
+            <p>Institutional-grade analysis generated by Anthropic's <strong>Claude</strong>, pre-computed and stored on disk. Served instantly — no API keys, fully offline.</p>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <span class="flow-badge">Fallback</span>
+            <h4>Hugging Face</h4>
+            <p>An optional cloud model for portfolios not present in the cache, when a token is configured.</p>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">
+            <span class="flow-badge">Safety net</span>
+            <h4>Deterministic templates</h4>
+            <p>Curated fallback text that ensures the system <strong>never fails</strong>, even without connectivity.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- METHODOLOGY (moved here) -->
+    <section class="section" id="methodology">
+      <div class="section-head">
+        <span class="kicker">09 — Quantitative Methodology</span>
+        <h2>The mathematics behind every panel</h2>
+        <p class="section-sub">Formal definitions for each component of the engine, for readers who want the underlying equations.</p>
+      </div>
+
+      <div class="method-grid">
+        <article class="method-card">
+          <h3>Returns</h3>
+          <p>Daily log-returns are used throughout for time-additivity:</p>
+          <div class="formula">r<sub>t</sub> = ln( P<sub>t</sub> / P<sub>t−1</sub> )</div>
+          <p class="method-note">The portfolio return is the weight-normalized combination r<sub>p,t</sub> = Σ<sub>i</sub> w<sub>i</sub> r<sub>i,t</sub>, computed only on dates where every holding traded.</p>
+        </article>
+
+        <article class="method-card">
+          <h3>Regime Detection — Gaussian HMM</h3>
+          <p>A four-state Gaussian Hidden Markov Model is fit on the feature vector [ r<sub>t</sub>, σ<sub>t</sub><sup>(5)</sup> ] (return and 5-day realized volatility):</p>
+          <div class="formula">P(s<sub>t</sub> | s<sub>t−1</sub>) = A &nbsp;;&nbsp; x<sub>t</sub> | s<sub>t</sub> ~ 𝒩(μ<sub>s</sub>, Σ<sub>s</sub>)</div>
+          <p class="method-note">States are labelled post-hoc by their mean return and volatility into Low-Volatility, Crisis, Recovery and Inflation Shock.</p>
+        </article>
+
+        <article class="method-card">
+          <h3>Historical VaR</h3>
+          <p>The empirical quantile of the trailing return window (non-parametric):</p>
+          <div class="formula">VaR<sub>α</sub> = Quantile<sub>(1−α)</sub>( {r<sub>t−w…t</sub>} )</div>
+        </article>
+
+        <article class="method-card">
+          <h3>Parametric VaR</h3>
+          <p>Assumes Gaussian returns and uses the normal inverse-CDF z-score:</p>
+          <div class="formula">VaR<sub>α</sub> = μ + z<sub>(1−α)</sub> · σ</div>
+        </article>
+
+        <article class="method-card">
+          <h3>EWMA VaR — RiskMetrics</h3>
+          <p>Exponentially-weighted variance reacts faster to recent shocks (λ = 0.94):</p>
+          <div class="formula">σ<sub>t</sub><sup>2</sup> = λ·σ<sub>t−1</sub><sup>2</sup> + (1−λ)·r<sub>t−1</sub><sup>2</sup></div>
+          <div class="formula">VaR<sub>α</sub> = z<sub>(1−α)</sub> · σ<sub>t</sub></div>
+        </article>
+
+        <article class="method-card highlight">
+          <h3>Regime-Adaptive VaR <span class="chip">signature</span></h3>
+          <p>Conditions the empirical quantile on the HMM state, widening in a Crisis and tightening when calm. It is strictly <strong>causal</strong> — each day uses only past returns from the same regime (no look-ahead):</p>
+          <div class="formula">VaR<sub>α</sub><sup>(t)</sup> = Quantile<sub>(1−α)</sub>( r<sub>&lt;t</sub> | regime = s<sub>t</sub> )</div>
+        </article>
+
+        <article class="method-card">
+          <h3>Cornish-Fisher VaR</h3>
+          <p>Adjusts the Gaussian quantile for the sample skewness (S) and excess kurtosis (K) — far more honest for fat-tailed assets:</p>
+          <div class="formula">z<sub>cf</sub> = z + (z²−1)·S/6 + (z³−3z)·K/24 − (2z³−5z)·S²/36</div>
+        </article>
+
+        <article class="method-card">
+          <h3>Conditional VaR (Expected Shortfall)</h3>
+          <p>The mean loss conditional on breaching VaR — capturing tail depth:</p>
+          <div class="formula">CVaR<sub>α</sub> = E[ r | r ≤ VaR<sub>α</sub> ]</div>
+        </article>
+
+        <article class="method-card">
+          <h3>Volatility Forecasting</h3>
+          <p>Three lenses, annualized by √252: rolling std, EWMA, and a gradient-boosted (XGBoost) model. The XGBoost forecast is <strong>walk-forward</strong> (expanding window, periodic refit) and scored <strong>out-of-sample</strong> against a naive benchmark via RMSE and QLIKE.</p>
+          <div class="formula">σ<sub>ann</sub> = σ<sub>daily</sub> · √252</div>
+        </article>
+
+        <article class="method-card">
+          <h3>Sharpe Ratio</h3>
+          <p>Annualized risk-adjusted return (r<sub>f</sub> = 0):</p>
+          <div class="formula">S = ( E[r] / σ<sub>r</sub> ) · √252</div>
+        </article>
+
+        <article class="method-card">
+          <h3>Maximum Drawdown</h3>
+          <p>Deepest peak-to-trough decline of cumulative wealth W<sub>t</sub>:</p>
+          <div class="formula">MDD = min<sub>t</sub> ( W<sub>t</sub> / max<sub>τ≤t</sub> W<sub>τ</sub> − 1 )</div>
+        </article>
+
+        <article class="method-card">
+          <h3>Stress Testing</h3>
+          <p>Each scenario applies calibrated per-asset shocks δ<sub>i</sub> to the portfolio weights:</p>
+          <div class="formula">L<sub>scenario</sub> = Σ<sub>i</sub> w<sub>i</sub> · δ<sub>i</sub></div>
+        </article>
+
+        <article class="method-card">
+          <h3>Higher Moments</h3>
+          <p>Skewness (asymmetry) and excess kurtosis (tail fatness) flag the non-normal, fat-tailed risk that VaR alone understates:</p>
+          <div class="formula">γ<sub>1</sub> = E[(r−μ)<sup>3</sup>]/σ<sup>3</sup> &nbsp;;&nbsp; γ<sub>2</sub> = E[(r−μ)<sup>4</sup>]/σ<sup>4</sup> − 3</div>
+        </article>
+
+        <article class="method-card">
+          <h3>Sortino Ratio</h3>
+          <p>Like Sharpe, but penalizes only <em>downside</em> deviation σ<sub>d</sub> — a fairer reward-to-risk measure when returns are asymmetric:</p>
+          <div class="formula">Sortino = ( E[r] / σ<sub>d</sub> ) · √252</div>
+        </article>
+
+        <article class="method-card">
+          <h3>VaR Backtesting</h3>
+          <p>Coverage is validated regulator-style. <strong>Kupiec POF</strong> tests whether the breach rate matches (1−α); <strong>Christoffersen</strong> adds an independence test for breach clustering:</p>
+          <div class="formula">LR<sub>POF</sub> , LR<sub>ind</sub> , LR<sub>cc</sub> ~ χ²</div>
+          <p class="method-note">An Expected-Shortfall test compares realized tail losses to predicted CVaR.</p>
+        </article>
+
+        <article class="method-card">
+          <h3>Filtered vs Smoothed Regimes</h3>
+          <p>The current regime uses <strong>filtered</strong> probabilities P(s<sub>t</sub> | x<sub>1:t</sub>) from the forward algorithm — using only information available at time t — rather than the smoothed full-sample posterior, avoiding hindsight bias.</p>
+        </article>
+
+        <article class="method-card">
+          <h3>Risk Attribution</h3>
+          <p>Euler decomposition splits total portfolio volatility into per-asset component contributions (which sum to the total), exposing concentration the capital weights hide:</p>
+          <div class="formula">CTR<sub>i</sub> = w<sub>i</sub> · (Σw)<sub>i</sub> / σ<sub>p</sub></div>
+        </article>
+
+        <article class="method-card">
+          <h3>Risk Parity (ERC)</h3>
+          <p>An equal-risk-contribution weighting solved by fixed-point iteration, where every asset contributes the same share of total risk:</p>
+          <div class="formula">w<sub>i</sub> · (Σw)<sub>i</sub> = w<sub>j</sub> · (Σw)<sub>j</sub> &nbsp;∀ i,j</div>
+        </article>
+
+        <article class="method-card">
+          <h3>Historical Replay &amp; Reverse Stress</h3>
+          <p>Beyond static shocks, crises are replayed using the <strong>actual</strong> asset return paths over each window (capturing real contagion). Reverse stress solves for the move required to hit a target loss:</p>
+          <div class="formula">σ-move = L<sub>target</sub> / σ<sub>daily</sub></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- CLOSING -->
+    <section class="section closing" id="closing">
+      <div class="closing-inner">
+        <h2>In summary</h2>
+        <p class="big-quote">
+          “VORTEX quantifies portfolio risk in real time, simulates its resilience to historic crises,
+          and translates the results into clear, decision-ready analysis.”
+        </p>
+        <a class="btn btn-primary" href="../index.html">Open the live dashboard →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="brand-mark">🌪️</span>
+      <p><strong>VORTEX</strong> — Volatility-Oriented Regime Tracking &amp; Explainability Engine</p>
+      <p class="byline">Designed &amp; built by <a href="https://ishapatro.in/" target="_blank" rel="noopener"><strong>Isha Patro</strong></a> · <a href="https://ishapatro.in/" target="_blank" rel="noopener">ishapatro.in ↗</a></p>
+      <p class="muted">A concepts &amp; methodology reference. Educational use only — not financial advice.</p>
+    </div>
+  </footer>
+
+  <!-- Methodology detail modal -->
+  <div class="modal-overlay" id="methodModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalBody">
+      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="methodology.js"></script>
+</body>
+</html>
